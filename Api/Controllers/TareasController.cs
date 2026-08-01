@@ -1,47 +1,78 @@
 using Microsoft.AspNetCore.Mvc;
+using Api.Models;
 
 namespace Api.Controllers;
-
-// TODO: Completar cada metodo con la logica correspondiente.
-// Reemplazar "throw new NotImplementedException();" con el codigo real.
-//
-// Pistas:
-//   - GET    → devolver lista o item
-//   - POST   → recibir un objeto Tarea y guardarlo
-//   - PUT    → recibir un id y un objeto Tarea para actualizar
-//   - DELETE → recibir un id y eliminar la tarea
 
 [ApiController]
 [Route("api/[controller]")]
 public class TareasController : ControllerBase
 {
+    private static readonly List<Tarea> _tareas = new();
+    private static int _siguienteId = 1;
+
     [HttpGet]
     public IActionResult GetTodas()
     {
-        throw new NotImplementedException();
+        return Ok(_tareas);
     }
 
     [HttpGet("{id}")]
     public IActionResult GetPorId(int id)
     {
-        throw new NotImplementedException();
+        var tarea = _tareas.FirstOrDefault(t => t.Id == id);
+
+        if (tarea == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(tarea);
     }
 
     [HttpPost]
-    public IActionResult Crear()
+    public IActionResult Crear([FromBody] Tarea tarea)
     {
-        throw new NotImplementedException();
+        if (tarea == null || string.IsNullOrWhiteSpace(tarea.Titulo))
+        {
+            return BadRequest("El titulo es obligatorio.");
+        }
+
+        tarea.Id = _siguienteId++;
+        _tareas.Add(tarea);
+
+        return CreatedAtAction(nameof(GetPorId), new { id = tarea.Id }, tarea);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Actualizar(int id)
+    public IActionResult Actualizar(int id, [FromBody] Tarea tareaActualizada)
     {
-        throw new NotImplementedException();
+        var tarea = _tareas.FirstOrDefault(t => t.Id == id);
+
+        if (tarea == null)
+        {
+            return NotFound();
+        }
+
+        tarea.Titulo = tareaActualizada.Titulo;
+        tarea.Descripcion = tareaActualizada.Descripcion;
+        tarea.Completada = tareaActualizada.Completada;
+        tarea.FechaLimite = tareaActualizada.FechaLimite;
+
+        return Ok(tarea);
     }
 
     [HttpDelete("{id}")]
     public IActionResult Eliminar(int id)
     {
-        throw new NotImplementedException();
+        var tarea = _tareas.FirstOrDefault(t => t.Id == id);
+
+        if (tarea == null)
+        {
+            return NotFound();
+        }
+
+        _tareas.Remove(tarea);
+
+        return NoContent();
     }
 }
